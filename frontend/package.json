@@ -1,4 +1,5 @@
 {
+  "name": "flood-risk-assessment",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
