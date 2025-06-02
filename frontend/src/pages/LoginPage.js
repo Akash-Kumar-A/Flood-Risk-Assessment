@@ -161,7 +161,9 @@ function LoginPage({ setUser }) {
         <div style={styles.decorativeShape}></div>
         
         <div style={styles.header}>
-          <h2 style={styles.title}>🔐 Login</h2>
+          <h2 style={styles.title}>🌊 Welcome</h2>
+          <h3 style={styles.title}>Flood Risk Assessment</h3>
+          <h4 style={styles.title}>🔐 Login</h4>
           <p style={styles.subtitle}>Access Flood Management System</p>
         </div>
 
