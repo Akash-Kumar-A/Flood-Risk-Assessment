@@ -15,33 +15,60 @@ L.Icon.Default.mergeOptions({
 });
 
 function MapView() {
-  const [alerts, setAlerts] = useState([]);
+  const [currentAlerts, setCurrentAlerts] = useState([]);
+  const API_URL = 'http://localhost:5000';
 
-  // Load alerts from localStorage on load
+  // Load alerts from API when component mounts
   useEffect(() => {
-    const stored = localStorage.getItem('floodAlerts');
-    if (stored) {
+    const loadAlerts = async () => {
       try {
-        setAlerts(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse floodAlerts:', e);
+        const response = await fetch(`${API_URL}/alerts`);
+        const data = await response.json();
+        setCurrentAlerts(data);
+      } catch (error) {
+        console.error('Error loading alerts:', error);
+        // Fallback to sample data if API fails
+        setCurrentAlerts([
+          {
+            id: 1,
+            zone: "Alappuzha Flood Zone",
+            severity: "High",
+            message: "Heavy rainfall expected. Evacuation recommended.",
+            time: new Date().toLocaleString()
+          },
+          {
+            id: 2,
+            zone: "Kuttanad Basin",
+            severity: "Medium",
+            message: "Water levels rising. Stay alert.",
+            time: new Date().toLocaleString()
+          }
+        ]);
       }
-    }
+    };
+
+    loadAlerts();
+
+    // Poll for updates every 30 seconds
+    const interval = setInterval(loadAlerts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Map severity to color
   const getSeverityColor = (severity) => {
     switch (severity) {
-      case 'High': return 'red';
-      case 'Medium': return 'orange';
-      case 'Low': return 'yellow';
-      default: return 'gray';
+      case 'High': return '#ff0000';  // Red
+      case 'Medium': return '#ff8c00'; // Orange
+      case 'Low': return '#ffd700';    // Gold/Yellow
+      default: return '#808080';       // Gray
     }
   };
 
   // Find if this zone has an alert
   const findAlertForZone = (zoneName) => {
-    return alerts.find((alert) => alert.zone.trim().toLowerCase() === zoneName.trim().toLowerCase());
+    return currentAlerts.find((alert) => 
+      alert.zone.trim().toLowerCase() === zoneName.trim().toLowerCase()
+    );
   };
 
   // Style each zone based on alert severity
@@ -52,14 +79,14 @@ function MapView() {
         fillColor: getSeverityColor(alert.severity),
         color: 'black',
         weight: 2,
-        fillOpacity: 0.6,
+        fillOpacity: 0.7,
       };
     }
     return {
-      fillColor: 'lightblue',
-      color: 'gray',
+      fillColor: '#add8e6', // Light blue
+      color: '#808080',     // Gray
       weight: 1,
-      fillOpacity: 0.2,
+      fillOpacity: 0.3,
     };
   };
 
@@ -69,6 +96,8 @@ function MapView() {
     let popupText = `<b>${feature.properties.zone}</b>`;
     if (alert) {
       popupText += `<br/>⚠️ ${alert.severity} Alert<br/>${alert.message}`;
+    } else {
+      popupText += `<br/>No active alerts`;
     }
     layer.bindPopup(popupText);
   };
@@ -76,6 +105,36 @@ function MapView() {
   return (
     <div>
       <h2>🗺️ Flood Risk Map</h2>
+      
+      {/* Legend */}
+      <div style={{ 
+        marginBottom: '1rem', 
+        padding: '10px', 
+        border: '1px solid #ccc', 
+        borderRadius: '5px',
+        backgroundColor: '#f9f9f9'
+      }}>
+        <strong>Alert Levels:</strong>
+        <div style={{ display: 'flex', gap: '15px', marginTop: '5px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '20px', height: '20px', backgroundColor: '#ff0000', border: '1px solid black' }}></div>
+            High Risk
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '20px', height: '20px', backgroundColor: '#ff8c00', border: '1px solid black' }}></div>
+            Medium Risk
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '20px', height: '20px', backgroundColor: '#ffd700', border: '1px solid black' }}></div>
+            Low Risk
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '20px', height: '20px', backgroundColor: '#add8e6', border: '1px solid black' }}></div>
+            No Alert
+          </span>
+        </div>
+      </div>
+
       <MapContainer
         center={[10.85, 76.27]}
         zoom={9}
@@ -87,7 +146,12 @@ function MapView() {
         />
 
         {/* Flood zones colored by alert */}
-        <GeoJSON data={floodZones} style={zoneStyle} onEachFeature={onEachZone} />
+        <GeoJSON 
+          data={floodZones} 
+          style={zoneStyle} 
+          onEachFeature={onEachZone}
+          key={JSON.stringify(currentAlerts)} // Force re-render when alerts change
+        />
 
         {/* Shelter markers */}
         {shelters.features.map((feature, idx) => (
@@ -105,6 +169,37 @@ function MapView() {
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Current Alerts Display */}
+      <div style={{ marginTop: '1rem' }}>
+        <h3>Current Alerts ({currentAlerts.length})</h3>
+        {currentAlerts.length > 0 ? (
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {currentAlerts.map((alert) => (
+              <div 
+                key={alert.id || alert.zone}
+                style={{
+                  padding: '10px',
+                  border: `2px solid ${getSeverityColor(alert.severity)}`,
+                  borderRadius: '5px',
+                  backgroundColor: `${getSeverityColor(alert.severity)}20`
+                }}
+              >
+                <strong>{alert.zone}</strong> - {alert.severity} Alert
+                <br />
+                {alert.message}
+                <br />
+                <small style={{ color: '#666' }}>
+                  Status: {alert.acknowledged ? '✅ Acknowledged' : '⏳ Not Acknowledged'} | 
+                  {alert.time}
+                </small>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No active alerts</p>
+        )}
+      </div>
     </div>
   );
 }

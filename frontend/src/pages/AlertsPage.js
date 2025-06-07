@@ -1,138 +1,124 @@
 import React, { useEffect, useState } from 'react';
-import floodZones from '../data/flood_zones.json'; // ✅ Import GeoJSON zones
+import floodZones from '../data/flood_zones.json';
 
 function AlertsPage({ user }) {
   const [alerts, setAlerts] = useState([]);
   const [zone, setZone] = useState('');
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState('Medium');
-  const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Load alerts from localStorage (only once)
+  const API_URL = 'http://localhost:5000';
+
   useEffect(() => {
-    const stored = localStorage.getItem('floodAlerts');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setAlerts(parsed);
-        }
-      } catch (e) {
-        console.error("Error parsing floodAlerts:", e);
-      }
-    }
-    setHasLoaded(true);
+    fetch(`${API_URL}/alerts`)
+      .then((res) => res.json())
+      .then((data) => setAlerts(data))
+      .catch((err) => console.error('Error loading alerts:', err));
   }, []);
-
-  // Save alerts to localStorage only after initial load
-  useEffect(() => {
-    if (hasLoaded) {
-      localStorage.setItem('floodAlerts', JSON.stringify(alerts));
-    }
-  }, [alerts, hasLoaded]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newAlert = {
-      id: Date.now(),
       zone,
       message,
       severity,
-      time: new Date().toLocaleString(),
-      acknowledged: false,
+      time: new Date().toLocaleString()
     };
-    setAlerts([newAlert, ...alerts]);
-    setZone('');
-    setMessage('');
-    setSeverity('Medium');
+
+    fetch(`${API_URL}/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newAlert)
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setAlerts((prev) => [data, ...prev]);
+        setZone('');
+        setMessage('');
+        setSeverity('Medium');
+      });
   };
 
   const handleAcknowledge = (id) => {
-    const updated = alerts.map((alert) =>
-      alert.id === id ? { ...alert, acknowledged: true } : alert
-    );
-    setAlerts(updated);
+    fetch(`${API_URL}/alerts/${id}/acknowledge`, {
+      method: 'PUT'
+    })
+      .then((res) => res.json())
+      .then((updatedAlert) => {
+        setAlerts((prev) =>
+          prev.map((a) => (a.id === updatedAlert.id ? updatedAlert : a))
+        );
+      });
   };
 
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case 'High': return '#ff4444';
-      case 'Medium': return '#ff8c00';
-      case 'Low': return '#4caf50';
-      default: return '#666';
-    }
-  };
+  const getSeverityColor = (s) =>
+    s === 'High' ? '#ff4444' : s === 'Medium' ? '#ff8c00' : '#4caf50';
 
   const styles = {
     container: {
-      maxWidth: '1000px',
-      margin: '0 auto',
       padding: '2rem',
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#f5f7fa',
+      fontFamily: 'Segoe UI, sans-serif',
+      background: '#f8f9fa',
       minHeight: '100vh'
     },
-    header: {
-      color: '#2c3e50',
-      marginBottom: '2rem',
-      textAlign: 'center',
-      fontSize: '2rem'
-    },
     formContainer: {
-      backgroundColor: 'white',
+      marginBottom: '2rem',
+      background: '#fff',
       padding: '2rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      marginBottom: '2rem'
+      borderRadius: '1rem',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    },
+    header: {
+      fontSize: '1.75rem',
+      marginBottom: '1rem',
+      color: '#2c3e50'
     },
     formGroup: {
-      marginBottom: '1.5rem'
+      marginBottom: '1.25rem'
     },
     label: {
+      fontWeight: '600',
       display: 'block',
       marginBottom: '0.5rem',
-      fontWeight: 'bold',
-      color: '#2c3e50'
+      color: '#34495e'
     },
     input: {
       width: '100%',
-      padding: '0.75rem',
-      border: '2px solid #e1e8ed',
-      borderRadius: '8px',
+      padding: '0.5rem',
       fontSize: '1rem',
-      boxSizing: 'border-box'
+      border: '1px solid #ccc',
+      borderRadius: '0.5rem'
     },
     textarea: {
       width: '100%',
       padding: '0.75rem',
-      border: '2px solid #e1e8ed',
-      borderRadius: '8px',
       fontSize: '1rem',
-      boxSizing: 'border-box',
+      borderRadius: '0.5rem',
+      border: '1px solid #ccc',
       resize: 'vertical'
     },
     submitBtn: {
-      backgroundColor: '#e74c3c',
-      color: 'white',
-      padding: '0.75rem 2rem',
+      padding: '0.75rem 1.5rem',
+      backgroundColor: '#007bff',
+      color: '#fff',
       border: 'none',
-      borderRadius: '8px',
+      borderRadius: '0.5rem',
       fontSize: '1rem',
-      cursor: 'pointer',
-      fontWeight: 'bold'
+      cursor: 'pointer'
     },
     alertsSection: {
-      backgroundColor: 'white',
-      padding: '2rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+      marginTop: '2rem'
+    },
+    noAlerts: {
+      fontStyle: 'italic',
+      color: '#6c757d'
     },
     alertCard: {
-      border: '1px solid #e1e8ed',
-      borderRadius: '8px',
-      padding: '1.5rem',
+      background: '#fff',
+      padding: '1.25rem',
       marginBottom: '1rem',
-      backgroundColor: '#fafbfc',
+      borderRadius: '0.75rem',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
       position: 'relative'
     },
     severityBadge: {
@@ -140,33 +126,27 @@ function AlertsPage({ user }) {
       top: '1rem',
       right: '1rem',
       padding: '0.25rem 0.75rem',
-      borderRadius: '20px',
-      color: 'white',
-      fontSize: '0.875rem',
+      color: '#fff',
+      borderRadius: '999px',
+      fontSize: '0.85rem',
       fontWeight: 'bold'
     },
     alertInfo: {
-      marginBottom: '0.5rem',
-      fontSize: '0.95rem'
+      marginTop: '0.5rem',
+      fontSize: '1rem'
     },
     alertLabel: {
       fontWeight: 'bold',
-      color: '#2c3e50'
+      color: '#555'
     },
     acknowledgeBtn: {
-      backgroundColor: '#27ae60',
-      color: 'white',
+      marginTop: '1rem',
       padding: '0.5rem 1rem',
+      backgroundColor: '#28a745',
+      color: '#fff',
       border: 'none',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      marginTop: '1rem'
-    },
-    noAlerts: {
-      textAlign: 'center',
-      color: '#7f8c8d',
-      fontSize: '1.1rem',
-      padding: '2rem'
+      borderRadius: '0.5rem',
+      cursor: 'pointer'
     }
   };
 
@@ -178,10 +158,10 @@ function AlertsPage({ user }) {
           <form onSubmit={handleSubmit}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Flood Zone:</label>
-              <select 
-                style={styles.input} 
-                value={zone} 
-                onChange={(e) => setZone(e.target.value)} 
+              <select
+                style={styles.input}
+                value={zone}
+                onChange={(e) => setZone(e.target.value)}
                 required
               >
                 <option value="">Select a flood zone</option>
@@ -205,9 +185,9 @@ function AlertsPage({ user }) {
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>Severity:</label>
-              <select 
-                style={styles.input} 
-                value={severity} 
+              <select
+                style={styles.input}
+                value={severity}
                 onChange={(e) => setSeverity(e.target.value)}
               >
                 <option>Low</option>
@@ -215,9 +195,7 @@ function AlertsPage({ user }) {
                 <option>High</option>
               </select>
             </div>
-            <button type="submit" style={styles.submitBtn}>
-              Submit Alert
-            </button>
+            <button type="submit" style={styles.submitBtn}>Submit Alert</button>
           </form>
         </div>
       )}
@@ -231,7 +209,7 @@ function AlertsPage({ user }) {
         ) : (
           alerts.map((alert) => (
             <div key={alert.id} style={styles.alertCard}>
-              <div 
+              <div
                 style={{
                   ...styles.severityBadge,
                   backgroundColor: getSeverityColor(alert.severity)
@@ -246,14 +224,14 @@ function AlertsPage({ user }) {
                 <span style={styles.alertLabel}>Message:</span> {alert.message}
               </div>
               <div style={styles.alertInfo}>
-                <span style={styles.alertLabel}>Status:</span> {' '}
+                <span style={styles.alertLabel}>Status:</span>{' '}
                 {alert.acknowledged ? '✅ Acknowledged' : '⏳ Not Acknowledged'}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
                 {alert.time}
               </div>
               {user?.role === 'Responder' && !alert.acknowledged && (
-                <button 
+                <button
                   style={styles.acknowledgeBtn}
                   onClick={() => handleAcknowledge(alert.id)}
                 >

@@ -1,6 +1,6 @@
 import React from 'react';
 
-function DashboardPage({ user = { email: 'demo@example.com', role: 'Responder' } }) {
+function DashboardPage({ user = { email: 'user@example.com', role: 'Responder' } }) {
   const getRoleColor = (role) => {
     switch (role) {
       case 'Admin': return '#e74c3c';
@@ -66,18 +66,19 @@ function DashboardPage({ user = { email: 'demo@example.com', role: 'Responder' }
       fontWeight: 'bold',
       marginTop: '1rem'
     },
-    sectionTitle: {
-      fontSize: '1.8rem',
-      color: '#2c3e50',
-      marginBottom: '1rem',
-      textAlign: 'center',
-      fontWeight: 'bold'
-    },
-    sectionDescription: {
-      fontSize: '1rem',
-      color: '#7f8c8d',
+    navigationInfo: {
+      backgroundColor: '#e8f4f8',
+      padding: '1.5rem',
+      borderRadius: '12px',
+      border: '2px solid #3498db',
       textAlign: 'center',
       marginBottom: '2rem'
+    },
+    navigationText: {
+      color: '#2980b9',
+      fontSize: '1rem',
+      margin: 0,
+      fontWeight: '500'
     },
     statsGrid: {
       display: 'grid',
@@ -118,15 +119,9 @@ function DashboardPage({ user = { email: 'demo@example.com', role: 'Responder' }
     quickActionsTitle: {
       fontSize: '1.5rem',
       color: '#2c3e50',
-      marginBottom: '0.5rem',
+      marginBottom: '1.5rem',
       textAlign: 'center',
       fontWeight: 'bold'
-    },
-    quickActionsDescription: {
-      fontSize: '0.95rem',
-      color: '#7f8c8d',
-      textAlign: 'center',
-      marginBottom: '1.5rem'
     },
     actionGrid: {
       display: 'grid',
@@ -182,23 +177,22 @@ function DashboardPage({ user = { email: 'demo@example.com', role: 'Responder' }
 
       <div style={styles.welcomeCard}>
         <div style={styles.userInfo}>
-          Welcome back, <strong>{user?.email || 'User'}</strong>!
+          Welcome back, <strong>{user.email}</strong>!
         </div>
         <div 
           style={{
             ...styles.roleChip,
-            backgroundColor: getRoleColor(user?.role || 'Responder')
+            backgroundColor: getRoleColor(user.role)
           }}
         >
-          <span>{getRoleIcon(user?.role || 'Responder')}</span>
-          {user?.role || 'Responder'}
+          <span>{getRoleIcon(user.role)}</span>
+          {user.role}
         </div>
       </div>
 
-      <div>
-        <h2 style={styles.sectionTitle}>📊 System Overview</h2>
-        <p style={styles.sectionDescription}>
-          Click on any section below to access detailed information. All icons are positioned at the top of each card for easy identification.
+      <div style={styles.navigationInfo}>
+        <p style={styles.navigationText}>
+          💡 <strong>Navigation Tip:</strong> Use the main navigation buttons at the top of the page to access different sections like Active Alerts, Admin tools, Coordinator functions, and Responder resources.
         </p>
       </div>
 
@@ -254,11 +248,8 @@ function DashboardPage({ user = { email: 'demo@example.com', role: 'Responder' }
 
       <div style={styles.quickActions}>
         <h3 style={styles.quickActionsTitle}>⚡ Quick Actions</h3>
-        <p style={styles.quickActionsDescription}>
-          Access frequently used features quickly. Each action is marked with an icon at the beginning for easy recognition.
-        </p>
         <div style={styles.actionGrid}>
-          {getQuickActions(user?.role || 'Responder').map((action, idx) => (
+          {getQuickActions(user.role).map((action, idx) => (
             <button
               key={idx}
               style={styles.actionButton}
