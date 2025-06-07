@@ -6,23 +6,29 @@ A modular web application to assist district-level emergency response teams, NGO
 
 ## 🧱 Project Structure
 Flood-Risk-Management/
-│
-├── frontend/ # React.js user interface
-├── backend/ # Express.js backend API
-├── prompts/ # All AI prompts used during development
-├── package.json # Node.js metadata
-└── README.md # Project documentation
+├── backend/              
+│   ├── index.js
+│   ├── server.js
+│   ├── .env
+│   ├── package.json
+├── frontend/             
+│   ├── src/
+│   ├── App.js
+│   ├── package.json
+├── prompts/              
+│   └── ai_prompts.md
+├── README.md            
+
 
 ---
 
 ## 🔧 Technologies Used
 
-| Layer       | Tools/Frameworks          |
-|-------------|---------------------------|
-| Frontend    | React.js                  |
-| Backend     | Node.js                   |
-| Map/GIS     | OpenStreetMap             |
-| Storage     | JSON                      |
+Frontend: React.js
+Backend: Node.js, Express.js
+Database: MongoDB
+Auth: JWT
+Tools: Thunder Client/Postman for API testing
 
 ---
 
@@ -44,6 +50,7 @@ cd Flood-Risk-Management
 cd backend
 npm install
 
+
 # Install frontend dependencies
 cd ../frontend
 npm install
@@ -51,7 +58,7 @@ npm install
 
 # Start backend
 cd backend
-npm start
+node server.js
 
 # Start frontend
 cd ../frontend
@@ -59,13 +66,13 @@ npm start
 
 Access the app in your browser at:
 ➡️ http://localhost:3000
+Server running at 
+➡️ http://localhost:5000
 
 🌍 Features
 Interactive flood risk map using Leaflet
 
 Role-based UI ready (Field Staff, Command Center, Officials)
-
-Prompts saved for reproducibility and evaluation
 
 GIS-based data rendering for affected regions
 
