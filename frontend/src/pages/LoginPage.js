@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { loginUser } from '../api'; // Make sure api.js exists in src
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function LoginPage({ setUser }) {
@@ -10,34 +7,17 @@ function LoginPage({ setUser }) {
   const [role, setRole] = useState('Responder');
   const [isLoading, setIsLoading] = useState(false);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-
-  try {
-    const res = await axios.post('http://localhost:5000/api/auth/login', {
-      email,
-      role
-    });
-
-    if (res.data?.token && res.data?.user) {
-      // Store token and user data in localStorage
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-
-      setUser({ email, role });
-      navigate('/dashboard');
-    } else {
-      alert(res.data?.error || 'Login failed');
-    }
-  } catch (err) {
-    console.error(err);
-    alert('Server error');
-  }
-
-  setIsLoading(false);
-};
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate loading
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    setUser({ email, role });
+    navigate('/dashboard');
+    setIsLoading(false);
+  };
 
   const getRoleDescription = (role) => {
     switch (role) {
