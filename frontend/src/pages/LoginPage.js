@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { loginUser } from '../api'; // Make sure api.js exists in src
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function LoginPage({ setUser }) {
@@ -15,7 +14,7 @@ const handleSubmit = async (e) => {
   setIsLoading(true);
 
   try {
-    const res = await axios.post('http://localhost:5000/api/auth/login', {
+    const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/login`, {
       email,
       role
     });
