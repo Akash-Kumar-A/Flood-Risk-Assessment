@@ -7,8 +7,7 @@ function AlertsPage({ user }) {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState('Medium');
 
-  const API_URL = process.env.REACT_APP_API_BASE_URL;
-
+  const API_URL = 'http://localhost:5000';
 
   useEffect(() => {
     fetch(`${API_URL}/alerts`)
